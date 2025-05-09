@@ -5,6 +5,8 @@ function App() {
   const [modelId, setModelId] = useState('');
   const [servedModelName, setServedModelName] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [adminKey, setAdminKey] = useState('');
+  const [host, setHost] = useState('localhost');
   const [servedModelPort, setServedModelPort] = useState('2242');
   const [maxModelLen, setMaxModelLen] = useState('2048');
   const [unlockMaxLength, setUnlockMaxLength] = useState(false);
@@ -15,10 +17,8 @@ function App() {
   const [enableChunkedPrefill, setEnableChunkedPrefill] = useState(false);
   const [quantization, setQuantization] = useState('None');
   const [kvCacheType, setKvCacheType] = useState('auto');
-  const [copied, setCopied] = useState(false);
-  const [animate, setAnimate] = useState(false);
-  const [showScrollBtn, setShowScrollBtn] = useState(false);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [singleUserMode, setSingleUserMode] = useState(false);
+  const [numSchedulerSteps, setNumSchedulerSteps] = useState('1');
   const [maxBatchSize, setMaxBatchSize] = useState('256');
   const [pipelineParallelSize, setPipelineParallelSize] = useState('1');
   const [unlockPipelineParallelSize, setUnlockPipelineParallelSize] = useState(false);
@@ -66,6 +66,13 @@ function App() {
     useState('0.3');
   const [disableLogprobsDuringSpecDecoding, setDisableLogprobsDuringSpecDecoding] =
     useState('auto');
+  const [disableCustomAllReduce, setDisableCustomAllReduce] = useState(false);
+  const [allowInlineModelLoading, setAllowInlineModelLoading] = useState(false);
+
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   const commandSectionRef = useRef(null);
 
@@ -238,6 +245,14 @@ function App() {
       command += ` --api-keys ${apiKey}`;
     }
 
+    if (adminKey !== '') {
+      command += ` --admin-key ${adminKey}`;
+    }
+
+    if (host !== 'localhost') {
+      command += ` --host ${host}`;
+    }
+
     if (servedModelPort !== '2242') {
       command += ` --port ${servedModelPort}`;
     }
@@ -268,6 +283,14 @@ function App() {
 
     if (kvCacheType !== 'auto') {
       command += ` --kv-cache-type ${kvCacheType}`;
+    }
+
+    if (singleUserMode) {
+      command += ` --single-user-mode`;
+    }
+
+    if (numSchedulerSteps !== '1') {
+      command += ` --num-scheduler-steps ${numSchedulerSteps}`;
     }
 
     if (maxBatchSize !== '256') {
@@ -420,6 +443,14 @@ function App() {
       command += ` --disable-logprobs-during-spec-decoding ${disableLogprobsDuringSpecDecoding}`;
     }
 
+    if (disableCustomAllReduce) {
+      command += ` --disable-custom-all-reduce`;
+    }
+
+    if (allowInlineModelLoading) {
+      command += ` --allow-inline-model-loading`;
+    }
+
     return command;
   };
 
@@ -511,6 +542,24 @@ function App() {
               <div className="field-hint">Custom API key for the API server. Optional.</div>
             </div>
 
+            {/* Admin Key field */}
+            <div className="input-group">
+              <label htmlFor="adminKey">
+                <i className="fa-solid fa-key"></i> Admin Key (Optional)
+              </label>
+              <input
+                type="text"
+                id="adminKey"
+                value={adminKey}
+                onChange={e => setAdminKey(e.target.value)}
+              />
+              <div className="field-hint">
+                Custom admin key for the API server. Optional. If an API key is provided, this
+                becomes mandatory to perform some operations, such as inline model loading,
+                unload/loading models and adapters.
+              </div>
+            </div>
+
             {/* API Server Port field */}
             <div className="input-group">
               <label htmlFor="servedModelPort">
@@ -525,6 +574,23 @@ function App() {
               />
               <div className="field-hint">
                 The port number to serve the model on. Default is 2242.
+              </div>
+            </div>
+
+            {/* Host for the server */}
+            <div className="input-group">
+              <label htmlFor="host">
+                <i className="fa-solid fa-server"></i> Host
+              </label>
+              <input
+                type="text"
+                id="host"
+                value={host}
+                onChange={e => setHost(e.target.value)}
+                placeholder="Enter host (e.g. localhost)"
+              />
+              <div className="field-hint">
+                The host to serve the model on. Default is localhost.
               </div>
             </div>
 
@@ -732,6 +798,47 @@ function App() {
               </div>
               <div className="field-hint">
                 The type of KV cache to use. Defaults to auto (no quantization).
+              </div>
+            </div>
+
+            {/* Single User Mode */}
+            <div className="input-group">
+              <div className="toggle-field" onClick={() => setSingleUserMode(!singleUserMode)}>
+                <label className="toggle-label">
+                  <i className="fa-solid fa-user"></i> Single User Mode
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={singleUserMode} readOnly />
+                  <span className="toggle-slider"></span>
+                </div>
+              </div>
+              <div className="field-hint">
+                Enables single user mode, which allocates enough memory for a single request, and
+                disables batching.
+              </div>
+            </div>
+
+            {/* Number of Scheduler Steps */}
+            <div className="input-group">
+              <label htmlFor="numSchedulerSteps">
+                <i className="fa-solid fa-clock"></i> Number of Scheduler Steps
+              </label>
+              <div className="slider-container">
+                <input
+                  type="range"
+                  id="numSchedulerStepsSlider"
+                  min="1"
+                  max="32"
+                  step="1"
+                  value={numSchedulerSteps}
+                  onChange={e => setNumSchedulerSteps(e.target.value)}
+                  className="slider"
+                />
+                <div className="slider-value">{numSchedulerSteps}</div>
+              </div>
+              <div className="field-hint">
+                The number of steps for multi-step scheduling. Default is 1. Higher values will
+                enable multi-step scheduling, which may improve throughput.
               </div>
             </div>
 
@@ -1755,6 +1862,49 @@ function App() {
                   </div>
                 </div>
 
+                {/* Disable Custom All Reduce toggle*/}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setDisableCustomAllReduce(!disableCustomAllReduce)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-ban"></i> Disable Custom All Reduce
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={disableCustomAllReduce} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Disable the custom all reduce kernels. Only disable these if your hardware
+                    doesn't support them, and you're getting benign warnings in the logger, or if
+                    you have issues with the kernels.
+                  </div>
+                </div>
+
+                {/* Allow Inline Model Loading */}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setAllowInlineModelLoading(!allowInlineModelLoading)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-check-double"></i> Allow Inline Model Loading
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={allowInlineModelLoading} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                </div>
+                <div className="field-hint">
+                  Allow inline model loading. If enabled, specifying a different model in the
+                  request from the loaded model will unload the current one and attempt to load the
+                  new one. Useful for testing different models without restarting the server. Note
+                  that if your server is behind an API key, you will need to also enable admin key
+                  and use that for the request.
+                </div>
                 {/* End */}
               </div>
             )}
