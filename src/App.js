@@ -4,6 +4,8 @@ import './App.css';
 function App() {
   const [modelId, setModelId] = useState('');
   const [servedModelName, setServedModelName] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [servedModelPort, setServedModelPort] = useState('2242');
   const [maxModelLen, setMaxModelLen] = useState('2048');
   const [unlockMaxLength, setUnlockMaxLength] = useState(false);
   const [gpuMemoryUtilization, setGpuMemoryUtilization] = useState('0.9');
@@ -20,6 +22,13 @@ function App() {
   const [maxBatchSize, setMaxBatchSize] = useState('256');
   const [pipelineParallelSize, setPipelineParallelSize] = useState('1');
   const [unlockPipelineParallelSize, setUnlockPipelineParallelSize] = useState(false);
+  const [launchKoboldAPI, setLaunchKoboldAPI] = useState(false);
+  const [cpuOffloadGB, setCpuOffloadGB] = useState('0');
+  const [enforceEager, setEnforceEager] = useState(false);
+  const [trustRemoteCode, setTrustRemoteCode] = useState(false);
+  const [dType, setDType] = useState('auto');
+  const [downloadDir, setDownloadDir] = useState('');
+  const [loadFormat, setLoadFormat] = useState('auto');
 
   const commandSectionRef = useRef(null);
 
@@ -130,6 +139,14 @@ function App() {
       command += ` --served-model-name ${servedModelName}`;
     }
 
+    if (apiKey !== '') {
+      command += ` --api-keys ${apiKey}`;
+    }
+
+    if (servedModelPort !== '2242') {
+      command += ` --port ${servedModelPort}`;
+    }
+
     if (maxModelLen !== '2048') {
       command += ` --max-model-len ${maxModelLen}`;
     }
@@ -164,6 +181,30 @@ function App() {
 
     if (pipelineParallelSize !== '1') {
       command += ` --pipeline-parallel-size ${pipelineParallelSize}`;
+    }
+
+    if (launchKoboldAPI) {
+      command += ` --launch-kobold-api`;
+    }
+
+    if (cpuOffloadGB !== '0') {
+      command += ` --cpu-offload-gb ${cpuOffloadGB}`;
+    }
+
+    if (enforceEager) {
+      command += ` --enforce-eager`;
+    }
+
+    if (trustRemoteCode) {
+      command += ` --trust-remote-code`;
+    }
+
+    if (dType !== 'auto') {
+      command += ` --d-type ${dType}`;
+    }
+
+    if (loadFormat !== 'auto') {
+      command += ` --load-format ${loadFormat}`;
     }
 
     return command;
@@ -221,6 +262,10 @@ function App() {
                 onChange={e => setModelId(e.target.value)}
                 placeholder="Enter model ID (e.g. openai-community/gpt2)"
               />
+              <div className="field-hint">
+                The ID of the model to run. This is usually the model name on HuggingFace. Can also
+                be a local path to a model checkpoint.
+              </div>
             </div>
 
             {/* Served Model Name field */}
@@ -236,6 +281,37 @@ function App() {
               />
               <div className="field-hint">
                 The name of the model on the API. Default is the model ID.
+              </div>
+            </div>
+
+            {/* API Key field */}
+            <div className="input-group">
+              <label htmlFor="apiKey">
+                <i className="fa-solid fa-key"></i> API Key (Optional)
+              </label>
+              <input
+                type="text"
+                id="apiKey"
+                value={apiKey}
+                onChange={e => setApiKey(e.target.value)}
+              />
+              <div className="field-hint">Custom API key for the API server. Optional.</div>
+            </div>
+
+            {/* API Server Port field */}
+            <div className="input-group">
+              <label htmlFor="servedModelPort">
+                <i className="fa-solid fa-server"></i> API Server Port
+              </label>
+              <input
+                type="text"
+                id="servedModelPort"
+                value={servedModelPort}
+                onChange={e => setServedModelPort(e.target.value)}
+                placeholder="Enter port number (e.g. 2242)"
+              />
+              <div className="field-hint">
+                The port number to serve the model on. Default is 2242.
               </div>
             </div>
 
@@ -414,7 +490,8 @@ function App() {
               <div className="field-hint">
                 Quantization method to use. Aphrodite usually detects this automatically from the
                 model checkpoint. Explicitly setting this may be needed for runtime quantization
-                like FP2-FP8 and bitsandbytes.
+                like FP2-FP8 and bitsandbytes. For BitsandBytes, make sure you set the load format
+                (Advanced Options) to bitsandbytes.
               </div>
             </div>
 
@@ -544,6 +621,169 @@ function App() {
                     )}
                   </div>
                 </div>
+
+                {/* Launch Kobold API*/}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setLaunchKoboldAPI(!launchKoboldAPI)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-server"></i> Launch Kobold API
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={launchKoboldAPI} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Launch the Kobold API alongside the default OpenAI API.
+                  </div>
+                </div>
+
+                {/* CPU Offload */}
+                <div className="input-group">
+                  <label htmlFor="cpuOffloadGB">
+                    <i className="fa-solid fa-microchip"></i> CPU Offload
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="cpuOffloadGBSlider"
+                      min="0.0"
+                      max="200.0"
+                      step="0.1"
+                      value={cpuOffloadGB}
+                      onChange={e => setCpuOffloadGB(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{cpuOffloadGB}</div>
+                  </div>
+                  <div className="field-hint">
+                    Amount of virtual memory to add to the GPU using CPU memory. Default is 0.
+                    Essentially CPU offloading of the model weights.
+                  </div>
+                </div>
+
+                {/* Enforce Eager */}
+                <div className="input-group">
+                  <div className="toggle-field" onClick={() => setEnforceEager(!enforceEager)}>
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Enforce Eager
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={enforceEager} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Disable CUDA graph captures. This may slightly reduce memory usage at the cost
+                    of performance.
+                  </div>
+                </div>
+
+                {/* Trust Remote Code */}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setTrustRemoteCode(!trustRemoteCode)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Trust Remote Code
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={trustRemoteCode} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Trust HuggingFace models with custom code. Aphrodite Engine does not use the
+                    custom code, but transformers will complain without this.
+                  </div>
+                </div>
+
+                {/* DType */}
+                <div className="input-group">
+                  <label htmlFor="dType">
+                    <i className="fa-solid fa-microchip"></i> DType
+                  </label>
+                  <div className="select-container">
+                    <select
+                      id="dType"
+                      value={dType}
+                      onChange={e => setDType(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="bfloat16">BFloat16</option>
+                      <option value="float16">Float16</option>
+                      <option value="float32">Float32</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    The data type to use for the model. Default is auto. You usually don't need to
+                    change this, unless you have a quantized model that cannot run with bfloat16.
+                  </div>
+                </div>
+
+                {/* Download Directory */}
+                <div className="input-group">
+                  <label htmlFor="downloadDir">
+                    <i className="fa-solid fa-download"></i> Download Directory
+                  </label>
+                  <input
+                    type="text"
+                    id="downloadDir"
+                    value={downloadDir}
+                    onChange={e => setDownloadDir(e.target.value)}
+                    placeholder="Enter download directory"
+                  />
+                  <div className="field-hint">
+                    The directory to download the model to. Default is the HuggingFace cache
+                    directory.
+                  </div>
+                </div>
+
+                {/* Load Format */}
+                <div className="input-group">
+                  <label htmlFor="loadFormat">
+                    <i className="fa-solid fa-file-arrow-down"></i> Load Format
+                  </label>
+                  <div className="select-container">
+                    <select
+                      id="loadFormat"
+                      value={loadFormat}
+                      onChange={e => setLoadFormat(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="safetensors">SafeTensors</option>
+                      <option value="pt">PyTorch</option>
+                      <option value="npcache">Numpy Cache</option>
+                      <option value="tensorizer">Tensorizer</option>
+                      <option value="dummy">Dummy</option>
+                      <option value="sharded_state">Sharded State</option>
+                      <option value="gguf">GGUF</option>
+                      <option value="bitsandbytes">BitsandBytes</option>
+                      <option value="mistral">Mistral</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    The format to load the model in. Default is auto. Use BitsandBytes if you've
+                    selected the BitsandBytes quantization method. Dummy can be used to load a model
+                    with random weights for testing.
+                  </div>
+                </div>
+
+                {}
+
+                {/* End */}
               </div>
             )}
           </div>
