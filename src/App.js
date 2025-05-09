@@ -18,6 +18,8 @@ function App() {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [maxBatchSize, setMaxBatchSize] = useState('256');
+  const [pipelineParallelSize, setPipelineParallelSize] = useState('1');
+  const [unlockPipelineParallelSize, setUnlockPipelineParallelSize] = useState(false);
 
   const commandSectionRef = useRef(null);
 
@@ -76,6 +78,12 @@ function App() {
       setTensorParallelSize('8');
     }
   }, [unlockTensorParallelSize, tensorParallelSize]);
+
+  useEffect(() => {
+    if (!unlockPipelineParallelSize && parseInt(pipelineParallelSize) > 8) {
+      setPipelineParallelSize('8');
+    }
+  }, [unlockPipelineParallelSize, pipelineParallelSize]);
 
   // Handle scroll position to show/hide back to top button
   useEffect(() => {
@@ -152,6 +160,10 @@ function App() {
 
     if (maxBatchSize !== '256') {
       command += ` --max-num-seqs ${maxBatchSize}`;
+    }
+
+    if (pipelineParallelSize !== '1') {
+      command += ` --pipeline-parallel-size ${pipelineParallelSize}`;
     }
 
     return command;
@@ -485,6 +497,51 @@ function App() {
                     Maximum number of sequences to process in parallel. Default is 256. Higher
                     values may use more GPU memory for CUDA graph captures, or cause OOMs when
                     receiving a large number of requests.
+                  </div>
+                </div>
+
+                {/* Pipeline Parallel Size */}
+                <div className="input-group">
+                  <div className="input-header">
+                    <label htmlFor="pipelineParallelSize">
+                      <i className="fa-solid fa-computer"></i> Pipeline Parallel Size
+                    </label>
+                    <div className="unlock-checkbox">
+                      <input
+                        type="checkbox"
+                        id="unlockPipelineParallelSize"
+                        checked={unlockPipelineParallelSize}
+                        onChange={e => setUnlockPipelineParallelSize(e.target.checked)}
+                      />
+                      <label htmlFor="unlockPipelineParallelSize" className="checkbox-label">
+                        Unlock
+                      </label>
+                    </div>
+                  </div>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="pipelineParallelSizeSlider"
+                      min="1"
+                      max={unlockPipelineParallelSize ? '256' : '8'}
+                      step="1"
+                      value={pipelineParallelSize}
+                      onChange={e => setPipelineParallelSize(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{pipelineParallelSize}</div>
+                  </div>
+                  <div className="field-hint">
+                    The number of Pipeline Parallel stages. Default is 1. If used together with
+                    Tensor Parallelism, the total number of GPUs used will be tensor_parallel_size *
+                    pipeline_parallel_size.
+                    {unlockPipelineParallelSize && (
+                      <span className="warning-text">
+                        <br />
+                        If you're doing multi-node inference, please see the{' '}
+                        <a href="https://aphrodite.pygmalion.chat/usage/distributed/">here</a>.
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
