@@ -4,7 +4,7 @@ import './App.css';
 function App() {
   const [modelId, setModelId] = useState('');
   const [servedModelName, setServedModelName] = useState('');
-  const [maxModelLen, setMaxModelLen] = useState('8192');
+  const [maxModelLen, setMaxModelLen] = useState('2048');
   const [unlockMaxLength, setUnlockMaxLength] = useState(false);
   const [gpuMemoryUtilization, setGpuMemoryUtilization] = useState('0.9');
   const [tensorParallelSize, setTensorParallelSize] = useState('1');
@@ -12,6 +12,7 @@ function App() {
   const [enablePrefixCaching, setEnablePrefixCaching] = useState(false);
   const [enableChunkedPrefill, setEnableChunkedPrefill] = useState(false);
   const [quantization, setQuantization] = useState('None');
+  const [kvCacheType, setKvCacheType] = useState('auto');
   const [copied, setCopied] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -55,6 +56,13 @@ function App() {
     'vptq',
     'ipex',
   ];
+
+  const kvCacheTypes = [
+    'auto',
+    'fp8',
+    'fp8_e5m2',
+    'fp8_e4m3'
+  ]
 
   useEffect(() => {
     setAnimate(true);
@@ -117,7 +125,7 @@ function App() {
       command += ` --served-model-name ${servedModelName}`;
     }
 
-    if (maxModelLen !== '8192') {
+    if (maxModelLen !== '2048') {
       command += ` --max-model-len ${maxModelLen}`;
     }
 
@@ -139,6 +147,10 @@ function App() {
 
     if (quantization !== 'None') {
       command += ` --quantization ${quantization}`;
+    }
+
+    if (kvCacheType !== 'auto') {
+      command += ` --kv-cache-type ${kvCacheType}`;
     }
 
     return command;
@@ -246,7 +258,7 @@ function App() {
                 <div className="slider-value">{maxModelLen}</div>
               </div>
               <div className="field-hint">
-                Maximum sequence length of the model. Default is 8192.{' '}
+                Maximum sequence length of the model. Defaults to model's max length.{' '}
                 {unlockMaxLength && (
                   <span className="warning-text">Large values may increase memory usage.</span>
                 )}
@@ -263,16 +275,16 @@ function App() {
                   type="range"
                   id="gpuMemoryUtilizationSlider"
                   min="0"
-                  max="1"
-                  step="0.01"
-                  value={gpuMemoryUtilization}
-                  onChange={e => setGpuMemoryUtilization(e.target.value)}
+                  max="100"
+                  step="1"
+                  value={Math.round(parseFloat(gpuMemoryUtilization) * 100)}
+                  onChange={e => setGpuMemoryUtilization((parseFloat(e.target.value) / 100).toFixed(2))}
                   className="slider"
                 />
-                <div className="slider-value">{gpuMemoryUtilization}</div>
+                <div className="slider-value">{Math.round(parseFloat(gpuMemoryUtilization) * 100)}%</div>
               </div>
               <div className="field-hint">
-                The Percentage of total GPU memory to use for Aphrodite. Default is 90%.
+                The percentage of total GPU memory to use for Aphrodite. Default is 90%. Note that Aphrodite Engine will reserve the specified amount of memory, and you will not be able to use it for other purposes.
               </div>
             </div>
 
@@ -318,6 +330,46 @@ function App() {
               </div>
             </div>
 
+            {/* Enable Prefix Caching */}
+            <div className="input-group">
+              <div
+                className="toggle-field"
+                onClick={() => setEnablePrefixCaching(!enablePrefixCaching)}
+              >
+                <label className="toggle-label">
+                  <i className="fa-solid fa-database"></i> Enable Prefix Caching
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={enablePrefixCaching} readOnly />
+                  <span className="toggle-slider"></span>
+                </div>
+              </div>
+              <div className="field-hint">
+                Enables caching of previous prompt tokens for better performance with repeated queries. Off
+                by default.
+              </div>
+            </div>
+
+            {/* Enable Chunked Prefill */}
+            <div className="input-group">
+              <div
+                className="toggle-field"
+                onClick={() => setEnableChunkedPrefill(!enableChunkedPrefill)}
+              >
+                <label className="toggle-label">
+                  <i className="fa-solid fa-database"></i> Enable Chunked Prefill
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={enableChunkedPrefill} readOnly />
+                  <span className="toggle-slider"></span>
+                </div>
+              </div>
+              <div className="field-hint">
+                Enables chunked prefill for better memory usage with long sequences. Enabled by default for Max
+                Model Length above 16384.
+              </div>
+            </div>
+
             {/* Quantization dropdown */}
             <div className="input-group">
               <label htmlFor="quantization">
@@ -347,43 +399,30 @@ function App() {
               </div>
             </div>
 
-            {/* Enable Prefix Caching */}
+            {/* KV Cache Type */}
             <div className="input-group">
-              <div
-                className="toggle-field"
-                onClick={() => setEnablePrefixCaching(!enablePrefixCaching)}
-              >
-                <label className="toggle-label">
-                  <i className="fa-solid fa-database"></i> Enable Prefix Caching
-                </label>
-                <div className="toggle-switch">
-                  <input type="checkbox" checked={enablePrefixCaching} readOnly />
-                  <span className="toggle-slider"></span>
+              <label htmlFor="kvCacheType">
+                <i className="fa-solid fa-database"></i> KV Cache Quantization
+              </label>
+              <div className="select-container">
+                <select
+                  id="kvCacheType"
+                  value={kvCacheType}
+                  onChange={e => setKvCacheType(e.target.value)}
+                  className="select-dropdown fancy-select"
+                >
+                  {kvCacheTypes.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <div className="select-arrow">
+                  <i className="fa-solid fa-chevron-down"></i>
                 </div>
               </div>
               <div className="field-hint">
-                Enables caching of prompt prefixes for better performance with repeated queries. Off
-                by default.
-              </div>
-            </div>
-
-            {/* Enable Chunked Prefill */}
-            <div className="input-group">
-              <div
-                className="toggle-field"
-                onClick={() => setEnableChunkedPrefill(!enableChunkedPrefill)}
-              >
-                <label className="toggle-label">
-                  <i className="fa-solid fa-database"></i> Enable Chunked Prefill
-                </label>
-                <div className="toggle-switch">
-                  <input type="checkbox" checked={enableChunkedPrefill} readOnly />
-                  <span className="toggle-slider"></span>
-                </div>
-              </div>
-              <div className="field-hint">
-                Enables chunked prefill for better performance with long sequences. Enabled for Max
-                Model Length above 16384.
+                The type of KV cache to use. Defaults to auto (no quantization).
               </div>
             </div>
           </div>
@@ -392,7 +431,7 @@ function App() {
 
       <footer className="footer">
         <div className="footer-content">
-          <p>Use this command in your terminal to run the Aphrodite Engine with your model</p>
+          <p>Copyright (c) 2025, PygmalionAI & Ruliad AI</p>
         </div>
       </footer>
 

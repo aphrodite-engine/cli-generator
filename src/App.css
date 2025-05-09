@@ -259,7 +259,7 @@ input:focus {
 }
 
 .slider-value {
-  min-width: 55px;
+  min-width: 60px;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-weight: 500;
   color: #4a2d8b;
@@ -268,6 +268,19 @@ input:focus {
   border-radius: 6px;
   text-align: center;
   font-size: 0.9rem;
+}
+
+/* Add a gradient background to the slider track based on value */
+.slider::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #d1c0ef 0%, #8a2be2 100%);
+  height: 6px;
+  border-radius: 3px;
+}
+
+.slider::-moz-range-track {
+  background: linear-gradient(90deg, #d1c0ef 0%, #8a2be2 100%);
+  height: 6px;
+  border-radius: 3px;
 }
 
 /* Command display improvements */
