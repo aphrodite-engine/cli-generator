@@ -1,4 +1,5 @@
 # Aphrodite Engine CLI Command Generator
+Mostly vibe coded, will hire someone to make it look better.
 
 ## Getting Started
 
