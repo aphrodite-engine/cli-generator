@@ -7,7 +7,7 @@
   color: #2d3748;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
 }
 
 /* Animations */
@@ -20,6 +20,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -64,7 +65,7 @@
   margin: 0 auto;
   padding: 2.5rem 2rem;
   opacity: 0;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -90,7 +91,7 @@
   gap: 3rem;
   margin-bottom: 3rem;
   max-width: 100%;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
 }
 
 @media (max-width: 900px) {
@@ -117,7 +118,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
+  /* overflow-x: auto; */
   max-width: 100%;
 }
 
@@ -133,6 +134,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -304,9 +306,17 @@ input:focus {
 
 .command-section {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  box-sizing: border-box;
+  /* max-width: 100%; */
+  /* overflow-x: hidden; */
+  /* box-sizing: border-box; */
+  position: -webkit-sticky;
+  position: sticky;
+  height: 230px;
+  padding: 5px 0;
+  top: 0;
+  z-index: 1000;
+  background: #f3f5f9;
+  /* Match App background */
 }
 
 code {
@@ -418,6 +428,7 @@ code {
 }
 
 @media (max-width: 768px) {
+
   .header-content,
   .page-content,
   .footer-content {
@@ -587,15 +598,15 @@ code {
   z-index: 2;
 }
 
-input:checked + .toggle-slider {
+input:checked+.toggle-slider {
   background: linear-gradient(90deg, #8a2be2, #a64dff);
 }
 
-input:focus + .toggle-slider {
+input:focus+.toggle-slider {
   box-shadow: 0 0 1px #8a2be2;
 }
 
-input:checked + .toggle-slider:before {
+input:checked+.toggle-slider:before {
   transform: translateX(26px);
 }
 
@@ -761,10 +772,12 @@ input:checked + .toggle-slider:before {
 
 /* Animation for dropdown arrow */
 @keyframes bounce {
+
   0%,
   100% {
     transform: translateY(-50%);
   }
+
   50% {
     transform: translateY(-60%);
   }
@@ -779,9 +792,11 @@ input:checked + .toggle-slider:before {
   0% {
     box-shadow: 0 0 0 rgba(138, 43, 226, 0.2);
   }
+
   50% {
     box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
   }
+
   100% {
     box-shadow: 0 0 0 rgba(138, 43, 226, 0.2);
   }
@@ -833,6 +848,7 @@ input:checked + .toggle-slider:before {
 
 /* Specific fixes for very small screens */
 @media (max-width: 480px) {
+
   /* Small screen override for toggle field */
   .toggle-field {
     flex-direction: column;
@@ -904,6 +920,7 @@ input:checked + .toggle-slider:before {
     transform: translateY(-10px);
     max-height: 0;
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1001,7 +1018,7 @@ input:checked + .toggle-slider:before {
   transition: all 0.3s ease;
 }
 
-.advanced-options-toggle input:checked + .toggle-slider {
+.advanced-options-toggle input:checked+.toggle-slider {
   background: linear-gradient(90deg, #6b46c1, #8a2be2);
 }
 
@@ -1204,6 +1221,7 @@ input:checked + .toggle-slider:before {
 
 /* Mobile layout for modules */
 @media (max-width: 600px) {
+
   .lora-module-inputs,
   .prompt-adapter-module-inputs {
     grid-template-columns: 1fr;
@@ -1362,6 +1380,11 @@ input:checked + .toggle-slider:before {
 
 .dark-mode .scroll-to-top-btn {
   background-color: #6a0dad;
+}
+
+.dark-mode .command-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  /* Match dark mode App background */
 }
 
 /* Mobile styles */
