@@ -501,7 +501,7 @@ function App() {
         <h1 className="page-title">Aphrodite Engine CLI Command Generator</h1>
         <p className="subtitle">
           Generate command line instructions for running models with Aphrodite Engine quickly and
-          easily
+          easily. Vibe coded with Cursor, may not be perfect.
         </p>
 
         {/* Command Display Section - Moved to the top */}
