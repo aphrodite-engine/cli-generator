@@ -1218,3 +1218,150 @@ input:checked + .toggle-slider:before {
   background-color: #f0fff4;
   color: #2f855a;
 }
+
+/* Theme toggle button */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle-btn {
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.theme-toggle-btn:focus {
+  outline: none;
+}
+
+/* Dark mode styles */
+.dark-mode {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #f1f1f1;
+}
+
+.dark-mode .header-bar {
+  background: linear-gradient(90deg, #6a0dad, #8a2be2);
+}
+
+.dark-mode .page-title,
+.dark-mode .section-title,
+.dark-mode .subsection-title {
+  color: #bb86fc;
+}
+
+.dark-mode .subtitle,
+.dark-mode .field-hint {
+  color: #b0b0b0;
+}
+
+.dark-mode input,
+.dark-mode .input-field,
+.dark-mode .slider-container,
+.dark-mode .fancy-select {
+  background-color: #2d2d3a;
+  color: #e1e1e1;
+  border-color: #444;
+}
+
+.dark-mode .slider {
+  background: #444;
+}
+
+.dark-mode .slider::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #6a0dad 0%, #8a2be2 100%);
+}
+
+.dark-mode .slider-value {
+  background-color: #3d3d4f;
+  color: #e1e1e1;
+}
+
+.dark-mode .command-display {
+  background-color: #2d2d3a;
+  border-color: #444;
+  color: #e1e1e1;
+}
+
+.dark-mode code {
+  color: #bb86fc;
+}
+
+.dark-mode .footer {
+  background-color: #1a1a2e;
+  border-top-color: #444;
+}
+
+.dark-mode .toggle-slider {
+  background-color: #555;
+}
+
+.dark-mode .toggle-field:hover .toggle-slider {
+  background-color: #666;
+}
+
+.dark-mode .lora-field-section,
+.dark-mode .prompt-adapter-field-section {
+  background-color: #2d2d3a;
+  border-color: #444;
+}
+
+.dark-mode .lora-preview,
+.dark-mode .prompt-adapter-preview {
+  background-color: #2d2d3a;
+  border-color: #555;
+}
+
+.dark-mode .advanced-options-section {
+  background-color: rgba(138, 43, 226, 0.1);
+  border-color: rgba(138, 43, 226, 0.2);
+}
+
+.dark-mode .select-dropdown option {
+  background-color: #2d2d3a;
+  color: #e1e1e1;
+}
+
+.dark-mode .warning-text {
+  color: #ffab40;
+}
+
+.dark-mode .lora-field-section:has(.input-field.is-valid),
+.dark-mode .prompt-adapter-field-section:has(.input-field.is-valid) {
+  border-color: #3d8554;
+  background-color: #2a3f31;
+}
+
+.dark-mode .lora-field-section .input-field.is-valid,
+.dark-mode .prompt-adapter-field-section .input-field.is-valid {
+  color: #4caf7d;
+}
+
+.dark-mode .copy-button {
+  background: linear-gradient(90deg, #6a0dad, #8a2be2);
+}
+
+.dark-mode .copy-button.copied {
+  background: linear-gradient(90deg, #2e7d32, #388e3c);
+}
+
+.dark-mode .scroll-to-top-btn {
+  background-color: #6a0dad;
+}
+
+/* Mobile styles */

@@ -73,6 +73,10 @@ function App() {
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [copied, setCopied] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode === 'true';
+  });
 
   const commandSectionRef = useRef(null);
 
@@ -119,6 +123,14 @@ function App() {
   useEffect(() => {
     setAnimate(true);
   }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     if (!unlockMaxLength && parseInt(maxModelLen) > 32768) {
@@ -454,13 +466,33 @@ function App() {
     return command;
   };
 
+  // Toggle dark mode with persistence
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('darkMode', newMode);
+  };
+
   return (
-    <div className={`App ${animate ? 'animate' : ''}`}>
+    <div className={`App ${animate ? 'animate' : ''} ${darkMode ? 'dark-mode' : ''}`}>
       <header className="header-bar">
         <div className="header-content">
           <div className="logo">
             <i className="fa-solid fa-terminal"></i>
             Aphrodite Engine Tools
+          </div>
+          <div className="theme-toggle">
+            <button
+              className="theme-toggle-btn"
+              onClick={toggleDarkMode}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? (
+                <i className="fa-solid fa-sun"></i>
+              ) : (
+                <i className="fa-solid fa-moon"></i>
+              )}
+            </button>
           </div>
         </div>
       </header>
