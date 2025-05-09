@@ -29,6 +29,18 @@ function App() {
   const [dType, setDType] = useState('auto');
   const [downloadDir, setDownloadDir] = useState('');
   const [loadFormat, setLoadFormat] = useState('auto');
+  const [tokenizer, setTokenizer] = useState('auto');
+  const [tokenizerMode, setTokenizerMode] = useState('auto');
+  const [enableLora, setEnableLora] = useState(false);
+  const [maxLoras, setMaxLoras] = useState('1');
+  const [maxLoraRank, setMaxLoraRank] = useState('16');
+  const [unlockMaxLoraRank, setUnlockMaxLoraRank] = useState(false);
+  const [loraExtraVocabSize, setLoraExtraVocabSize] = useState('256');
+  const [loraDtype, setLoraDtype] = useState('auto');
+  const [longLoraScalingFactors, setLongLoraScalingFactors] = useState('');
+  const [fullyShardedLoras, setFullyShardedLoras] = useState(false);
+  const [qloraAdapterNameOrPath, setQloraAdapterNameOrPath] = useState('');
+  const [loraModules, setLoraModules] = useState([{ key: '', value: '' }]);
 
   const commandSectionRef = useRef(null);
 
@@ -94,6 +106,12 @@ function App() {
     }
   }, [unlockPipelineParallelSize, pipelineParallelSize]);
 
+  useEffect(() => {
+    if (!unlockMaxLoraRank && parseInt(maxLoraRank) > 128) {
+      setMaxLoraRank('128');
+    }
+  }, [unlockMaxLoraRank, maxLoraRank]);
+
   // Handle scroll position to show/hide back to top button
   useEffect(() => {
     const handleScroll = () => {
@@ -130,6 +148,29 @@ function App() {
       .catch(err => {
         console.error('Failed to copy: ', err);
       });
+  };
+
+  const addLoraModule = () => {
+    setLoraModules([...loraModules, { key: '', value: '' }]);
+  };
+
+  const removeLoraModule = index => {
+    const newModules = [...loraModules];
+    newModules.splice(index, 1);
+    setLoraModules(newModules.length ? newModules : [{ key: '', value: '' }]);
+  };
+
+  const updateLoraModule = (index, field, value) => {
+    const newModules = [...loraModules];
+    newModules[index][field] = value;
+    setLoraModules(newModules);
+  };
+
+  const getLoraModulesString = () => {
+    return loraModules
+      .filter(module => module.key.trim() && module.value.trim())
+      .map(module => `${module.key.trim()}="${module.value.trim()}"`)
+      .join(' ');
   };
 
   const generateCommand = () => {
@@ -205,6 +246,51 @@ function App() {
 
     if (loadFormat !== 'auto') {
       command += ` --load-format ${loadFormat}`;
+    }
+
+    if (tokenizer !== 'auto' && tokenizer !== '') {
+      command += ` --tokenizer ${tokenizer}`;
+    }
+
+    if (tokenizerMode !== 'auto') {
+      command += ` --tokenizer-mode ${tokenizerMode}`;
+    }
+
+    if (enableLora) {
+      command += ` --enable-lora`;
+    }
+
+    if (maxLoras !== '1') {
+      command += ` --max-loras ${maxLoras}`;
+    }
+
+    if (maxLoraRank !== '16') {
+      command += ` --max-lora-rank ${maxLoraRank}`;
+    }
+
+    if (loraExtraVocabSize !== '256') {
+      command += ` --lora-extra-vocab-size ${loraExtraVocabSize}`;
+    }
+
+    if (loraDtype !== 'auto') {
+      command += ` --lora-dtype ${loraDtype}`;
+    }
+
+    if (longLoraScalingFactors !== '') {
+      command += ` --long-lora-scaling-factors ${longLoraScalingFactors}`;
+    }
+
+    if (fullyShardedLoras) {
+      command += ` --fully-sharded-loras`;
+    }
+
+    if (qloraAdapterNameOrPath !== '') {
+      command += ` --qlora-adapter-name-or-path ${qloraAdapterNameOrPath}`;
+    }
+
+    const loraModulesString = getLoraModulesString();
+    if (loraModulesString) {
+      command += ` --lora-modules ${loraModulesString}`;
     }
 
     return command;
@@ -781,7 +867,296 @@ function App() {
                   </div>
                 </div>
 
-                {}
+                {/* Tokenizer text field*/}
+                <div className="input-group">
+                  <label htmlFor="tokenizer">
+                    <i className="fa-solid fa-microchip"></i> Tokenizer
+                  </label>
+                  <input
+                    type="text"
+                    id="tokenizer"
+                    value={tokenizer}
+                    onChange={e => setTokenizer(e.target.value)}
+                    placeholder="Enter custom tokenizer path (optional)"
+                  />
+                  <div className="field-hint">
+                    The tokenizer to use for the model. Leave as "auto" to use the model's default
+                    tokenizer. Only set this if you need a different tokenizer than what comes with
+                    the model. For GGUF models, this helps with faster loading times if you point it
+                    to an unquantized model.
+                  </div>
+                </div>
+
+                {/* Tokenizer Mode */}
+                <div className="input-group">
+                  <label htmlFor="tokenizerMode">
+                    <i className="fa-solid fa-microchip"></i> Tokenizer Mode
+                  </label>
+                  <div className="select-container">
+                    <select
+                      id="tokenizerMode"
+                      value={tokenizerMode}
+                      onChange={e => setTokenizerMode(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="slow">Slow</option>
+                      <option value="mistral">Mistral</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    The mode to use for the tokenizer. Default is auto. Use Mistral for Mistral
+                    models.
+                  </div>
+                </div>
+
+                {/* Enable Lora */}
+                <div className="input-group">
+                  <div className="toggle-field" onClick={() => setEnableLora(!enableLora)}>
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Enable Lora
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={enableLora} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">Enable handling of LoRA adapters.</div>
+                </div>
+
+                {/* LoRA Modules */}
+                <div className="input-group lora-modules-group">
+                  <label>
+                    <i className="fa-solid fa-puzzle-piece"></i> LoRA Modules
+                  </label>
+                  <div className="field-hint mb-2">
+                    Add LoRA modules with their identifiers and paths. Each key is your desired LoRA
+                    name, and each value is the HuggingFace ID or local path.
+                  </div>
+
+                  {loraModules.map((module, index) => (
+                    <div className="lora-module-row" key={index}>
+                      <div className="lora-module-inputs">
+                        <div className="lora-field-section">
+                          <input
+                            type="text"
+                            placeholder="LoRA name"
+                            value={module.key}
+                            onChange={e => updateLoraModule(index, 'key', e.target.value)}
+                            className={`input-field lora-key ${module.key.trim() ? 'is-valid' : ''}`}
+                          />
+                        </div>
+                        <div className="lora-field-section">
+                          <input
+                            type="text"
+                            placeholder="Path or HF ID"
+                            value={module.value}
+                            onChange={e => updateLoraModule(index, 'value', e.target.value)}
+                            className={`input-field lora-value ${module.value.trim() ? 'is-valid' : ''}`}
+                          />
+                          <button
+                            className="lora-remove-btn"
+                            onClick={() => removeLoraModule(index)}
+                            type="button"
+                            aria-label="Remove LoRA module"
+                          >
+                            <i className="fa-solid fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button className="lora-add-btn" onClick={addLoraModule} type="button">
+                    <i className="fa-solid fa-plus"></i> Add LoRA Module
+                  </button>
+
+                  {getLoraModulesString() && (
+                    <div className="lora-preview">
+                      <div className="lora-preview-title">Preview:</div>
+                      <code className="lora-preview-code">
+                        --lora-modules {getLoraModulesString()}
+                      </code>
+                    </div>
+                  )}
+                </div>
+
+                {/* Max Loras */}
+                <div className="input-group">
+                  <label htmlFor="maxLoras">
+                    <i className="fa-solid fa-microchip"></i> Max Loras
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="maxLorasSlider"
+                      min="1"
+                      max="1024"
+                      step="1"
+                      value={maxLoras}
+                      onChange={e => setMaxLoras(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{maxLoras}</div>
+                  </div>
+                  <div className="field-hint">
+                    The maximum number of LoRA adapters to load. Default is 1.
+                  </div>
+                </div>
+
+                {/* Max Lora Rank */}
+                <div className="input-group">
+                  <div className="input-header">
+                    <label htmlFor="maxLoraRank">
+                      <i className="fa-solid fa-microchip"></i> Max Lora Rank
+                    </label>
+                    <div className="unlock-checkbox">
+                      <input
+                        type="checkbox"
+                        id="unlockMaxLoraRank"
+                        checked={unlockMaxLoraRank}
+                        onChange={e => setUnlockMaxLoraRank(e.target.checked)}
+                      />
+                      <label htmlFor="unlockMaxLoraRank" className="checkbox-label">
+                        Unlock
+                      </label>
+                    </div>
+                  </div>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="maxLoraRankSlider"
+                      min="1"
+                      max={unlockMaxLoraRank ? '4096' : '128'}
+                      step="1"
+                      value={maxLoraRank}
+                      onChange={e => setMaxLoraRank(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{maxLoraRank}</div>
+                  </div>
+                  <div className="field-hint">
+                    The maximum rank of the LoRA adapters to load. Default is 16.
+                    <br />
+                    {unlockMaxLoraRank && (
+                      <span className="warning-text">
+                        Increasing this will increase memory usage and may cause slowdowns.
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lora Extra Vocab Size */}
+                <div className="input-group">
+                  <label htmlFor="loraExtraVocabSize">
+                    <i className="fa-solid fa-microchip"></i> Lora Extra Vocab Size
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="loraExtraVocabSizeSlider"
+                      min="0"
+                      max="1024"
+                      step="1"
+                      value={loraExtraVocabSize}
+                      onChange={e => setLoraExtraVocabSize(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{loraExtraVocabSize}</div>
+                  </div>
+                  <div className="field-hint">
+                    The size of the extra vocabulary to load. Default is 256.
+                  </div>
+                </div>
+
+                {/* Lora dtype */}
+                <div className="input-group">
+                  <label htmlFor="loraDtype">
+                    <i className="fa-solid fa-microchip"></i> Lora DType
+                  </label>
+                  <div className="select-container">
+                    <select
+                      id="loraDtype"
+                      value={loraDtype}
+                      onChange={e => setLoraDtype(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="bfloat16">BFloat16</option>
+                      <option value="float16">Float16</option>
+                      <option value="float32">Float32</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    The data type to use for the LoRA adapters. Default is auto which uses the
+                    model's dtype.
+                  </div>
+                </div>
+
+                {/* Long Lora Scaling Factors */}
+                <div className="input-group">
+                  <label htmlFor="longLoraScalingFactors">
+                    <i className="fa-solid fa-microchip"></i> Long Lora Scaling Factors
+                  </label>
+                  <div className="input-container">
+                    <input
+                      type="text"
+                      id="longLoraScalingFactors"
+                      value={longLoraScalingFactors}
+                      onChange={e => setLongLoraScalingFactors(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                  <div className="field-hint">
+                    Specify multiple scaling factors (which can be different from base model scaling
+                    factor - see e.g. Long LoRA) to allow for multiple LoRA adapters trained with
+                    those scaling factors to be used at the same time. If not specified, only
+                    adapters trained with the base model scaling factors are allowed.
+                  </div>
+                </div>
+
+                {/* Fully Sharded Loras */}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setFullyShardedLoras(!fullyShardedLoras)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Fully Sharded Loras
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={fullyShardedLoras} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    By default, only half of the LoRA computation is sharded with Tensor
+                    Parallelism. Enabling this will use the fully sharded layers. At high sequence
+                    lengths, max rank or TP size, this is likely faster. Use this with caution, as
+                    it may cause slowdowns under most circumstances.
+                  </div>
+                </div>
+
+                {/* Qlora Adapter Name or Path */}
+                <div className="input-group">
+                  <label htmlFor="qloraAdapterNameOrPath">
+                    <i className="fa-solid fa-microchip"></i> Qlora Adapter Name or Path
+                  </label>
+                  <input
+                    type="text"
+                    id="qloraAdapterNameOrPath"
+                    value={qloraAdapterNameOrPath}
+                    onChange={e => setQloraAdapterNameOrPath(e.target.value)}
+                    className="input-field"
+                  />
+                  <div className="field-hint">The name or path of the Qlora adapter to load.</div>
+                </div>
 
                 {/* End */}
               </div>
