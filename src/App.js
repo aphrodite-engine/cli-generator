@@ -162,6 +162,13 @@ function App() {
     }
   }, [unlockSpeculativeMaxModelLen, speculativeMaxModelLen]);
 
+  // Reset GPU Memory Utilization when single user mode is toggled on
+  useEffect(() => {
+    if (singleUserMode) {
+      setGpuMemoryUtilization('0.9');
+    }
+  }, [singleUserMode]);
+
   // Handle scroll position to show/hide back to top button
   useEffect(() => {
     const handleScroll = () => {
@@ -498,12 +505,6 @@ function App() {
       </header>
 
       <main className="page-content">
-        <h1 className="page-title">Aphrodite Engine CLI Command Generator</h1>
-        <p className="subtitle">
-          Generate command line instructions for running models with Aphrodite Engine quickly and
-          easily. Vibe coded with Cursor, may not be perfect.
-        </p>
-
         {/* Command Display Section - Moved to the top */}
         <div className="command-section" ref={commandSectionRef}>
           <h2 className="section-title">Generated Command</h2>
@@ -520,6 +521,12 @@ function App() {
             {copied ? 'Copied!' : 'Copy to Clipboard'}
           </button>
         </div>
+
+        <h1 className="page-title">Aphrodite Engine CLI Command Generator</h1>
+        <p className="subtitle">
+          Generate command line instructions for running models with Aphrodite Engine quickly and
+          easily. Vibe coded with Cursor, may not be perfect.
+        </p>
 
         {/* Form Fields Section */}
         <div className="generator-section">
@@ -665,34 +672,53 @@ function App() {
               </div>
             </div>
 
-            {/* GPU Memory Utilization */}
+            {/* Single User Mode */}
             <div className="input-group">
-              <label htmlFor="gpuMemoryUtilization">
-                <i className="fa-solid fa-memory"></i> GPU Memory Utilization
-              </label>
-              <div className="slider-container">
-                <input
-                  type="range"
-                  id="gpuMemoryUtilizationSlider"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={Math.round(parseFloat(gpuMemoryUtilization) * 100)}
-                  onChange={e =>
-                    setGpuMemoryUtilization((parseFloat(e.target.value) / 100).toFixed(2))
-                  }
-                  className="slider"
-                />
-                <div className="slider-value">
-                  {Math.round(parseFloat(gpuMemoryUtilization) * 100)}%
+              <div className="toggle-field" onClick={() => setSingleUserMode(!singleUserMode)}>
+                <label className="toggle-label">
+                  <i className="fa-solid fa-user"></i> Single User Mode
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={singleUserMode} readOnly />
+                  <span className="toggle-slider"></span>
                 </div>
               </div>
               <div className="field-hint">
-                The percentage of total GPU memory to use for Aphrodite. Default is 90%. Note that
-                Aphrodite Engine will reserve the specified amount of memory, and you will not be
-                able to use it for other purposes.
+                Enables single user mode, which allocates enough memory for a single request, and
+                disables batching.
               </div>
             </div>
+
+            {/* GPU Memory Utilization */}
+            {!singleUserMode && (
+              <div className="input-group">
+                <label htmlFor="gpuMemoryUtilization">
+                  <i className="fa-solid fa-memory"></i> GPU Memory Utilization
+                </label>
+                <div className="slider-container">
+                  <input
+                    type="range"
+                    id="gpuMemoryUtilizationSlider"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={Math.round(parseFloat(gpuMemoryUtilization) * 100)}
+                    onChange={e =>
+                      setGpuMemoryUtilization((parseFloat(e.target.value) / 100).toFixed(2))
+                    }
+                    className="slider"
+                  />
+                  <div className="slider-value">
+                    {Math.round(parseFloat(gpuMemoryUtilization) * 100)}%
+                  </div>
+                </div>
+                <div className="field-hint">
+                  The percentage of total GPU memory to use for Aphrodite. Default is 90%. Note that
+                  Aphrodite Engine will reserve the specified amount of memory, and you will not be
+                  able to use it for other purposes.
+                </div>
+              </div>
+            )}
 
             {/* Tensor Parallel Size */}
             <div className="input-group">
@@ -830,23 +856,6 @@ function App() {
               </div>
               <div className="field-hint">
                 The type of KV cache to use. Defaults to auto (no quantization).
-              </div>
-            </div>
-
-            {/* Single User Mode */}
-            <div className="input-group">
-              <div className="toggle-field" onClick={() => setSingleUserMode(!singleUserMode)}>
-                <label className="toggle-label">
-                  <i className="fa-solid fa-user"></i> Single User Mode
-                </label>
-                <div className="toggle-switch">
-                  <input type="checkbox" checked={singleUserMode} readOnly />
-                  <span className="toggle-slider"></span>
-                </div>
-              </div>
-              <div className="field-hint">
-                Enables single user mode, which allocates enough memory for a single request, and
-                disables batching.
               </div>
             </div>
 
