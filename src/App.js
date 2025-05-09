@@ -41,6 +41,31 @@ function App() {
   const [fullyShardedLoras, setFullyShardedLoras] = useState(false);
   const [qloraAdapterNameOrPath, setQloraAdapterNameOrPath] = useState('');
   const [loraModules, setLoraModules] = useState([{ key: '', value: '' }]);
+  const [enablePromptAdapter, setEnablePromptAdapter] = useState(false);
+  const [promptAdapters, setPromptAdapters] = useState([{ key: '', value: '' }]);
+  const [maxPromptAdapters, setMaxPromptAdapters] = useState('1');
+  const [maxPromptAdapterToken, setMaxPromptAdapterToken] = useState('0');
+  const [schedulingPolicy, setSchedulingPolicy] = useState('fcfs');
+  const [speculativeModel, setSpeculativeModel] = useState('');
+  const [speculativeModelQuantization, setSpeculativeModelQuantization] = useState('None');
+  const [numSpeculativeTokens, setNumSpeculativeTokens] = useState('0');
+  const [speculativeDisableMQAScorer, setSpeculativeDisableMQAScorer] = useState(false);
+  const [speculativeMaxModelLen, setSpeculativeMaxModelLen] = useState('2048');
+  const [unlockSpeculativeMaxModelLen, setUnlockSpeculativeMaxModelLen] = useState(false);
+  const [speculativePromptLookupMax, setSpeculativePromptLookupMax] = useState('0');
+  const [speculativePromptLookupMin, setSpeculativePromptLookupMin] = useState('0');
+  const [speculativeDraftTensorParallelSize, setSpeculativeDraftTensorParallelSize] = useState('1');
+  const [speculativeDisableByBatchSize, setSpeculativeDisableByBatchSize] = useState('0');
+  const [specDecodingAcceptanceMethod, setSpecDecodingAcceptanceMethod] =
+    useState('rejection_sampler');
+  const [
+    typicalAcceptanceSamplerPosteriorThreshold,
+    setTypicalAcceptanceSamplerPosteriorThreshold,
+  ] = useState('0.09');
+  const [typicalAcceptanceSamplerPosteriorAlpha, setTypicalAcceptanceSamplerPosteriorAlpha] =
+    useState('0.3');
+  const [disableLogprobsDuringSpecDecoding, setDisableLogprobsDuringSpecDecoding] =
+    useState('auto');
 
   const commandSectionRef = useRef(null);
 
@@ -112,6 +137,12 @@ function App() {
     }
   }, [unlockMaxLoraRank, maxLoraRank]);
 
+  useEffect(() => {
+    if (!unlockSpeculativeMaxModelLen && parseInt(speculativeMaxModelLen) > 32768) {
+      setSpeculativeMaxModelLen('32768');
+    }
+  }, [unlockSpeculativeMaxModelLen, speculativeMaxModelLen]);
+
   // Handle scroll position to show/hide back to top button
   useEffect(() => {
     const handleScroll = () => {
@@ -170,6 +201,29 @@ function App() {
     return loraModules
       .filter(module => module.key.trim() && module.value.trim())
       .map(module => `${module.key.trim()}="${module.value.trim()}"`)
+      .join(' ');
+  };
+
+  const addPromptAdapter = () => {
+    setPromptAdapters([...promptAdapters, { key: '', value: '' }]);
+  };
+
+  const removePromptAdapter = index => {
+    const newAdapters = [...promptAdapters];
+    newAdapters.splice(index, 1);
+    setPromptAdapters(newAdapters.length ? newAdapters : [{ key: '', value: '' }]);
+  };
+
+  const updatePromptAdapter = (index, field, value) => {
+    const newAdapters = [...promptAdapters];
+    newAdapters[index][field] = value;
+    setPromptAdapters(newAdapters);
+  };
+
+  const getPromptAdaptersString = () => {
+    return promptAdapters
+      .filter(adapter => adapter.key.trim() && adapter.value.trim())
+      .map(adapter => `${adapter.key.trim()}="${adapter.value.trim()}"`)
       .join(' ');
   };
 
@@ -291,6 +345,79 @@ function App() {
     const loraModulesString = getLoraModulesString();
     if (loraModulesString) {
       command += ` --lora-modules ${loraModulesString}`;
+    }
+
+    if (enablePromptAdapter) {
+      command += ` --enable-prompt-adapter`;
+    }
+
+    const promptAdaptersString = getPromptAdaptersString();
+    if (promptAdaptersString) {
+      command += ` --prompt-adapters ${promptAdaptersString}`;
+    }
+
+    if (maxPromptAdapters !== '1') {
+      command += ` --max-prompt-adapters ${maxPromptAdapters}`;
+    }
+
+    if (maxPromptAdapterToken !== '0') {
+      command += ` --max-prompt-adapter-token ${maxPromptAdapterToken}`;
+    }
+
+    if (schedulingPolicy !== 'fcfs') {
+      command += ` --scheduling-policy ${schedulingPolicy}`;
+    }
+
+    if (speculativeModel !== '') {
+      command += ` --speculative-model ${speculativeModel}`;
+    }
+
+    if (speculativeModelQuantization !== 'None') {
+      command += ` --speculative-model-quantization ${speculativeModelQuantization}`;
+    }
+
+    if (numSpeculativeTokens !== '0') {
+      command += ` --num-speculative-tokens ${numSpeculativeTokens}`;
+    }
+
+    if (speculativeDisableMQAScorer) {
+      command += ` --speculative-disable-mqa-scorer`;
+    }
+
+    if (speculativeMaxModelLen !== '2048') {
+      command += ` --speculative-max-model-len ${speculativeMaxModelLen}`;
+    }
+
+    if (speculativePromptLookupMax !== '0') {
+      command += ` --speculative-prompt-lookup-max ${speculativePromptLookupMax}`;
+    }
+
+    if (speculativePromptLookupMin !== '0') {
+      command += ` --speculative-prompt-lookup-min ${speculativePromptLookupMin}`;
+    }
+
+    if (speculativeDraftTensorParallelSize !== '1') {
+      command += ` --speculative-draft-tensor-parallel-size ${speculativeDraftTensorParallelSize}`;
+    }
+
+    if (speculativeDisableByBatchSize !== '0') {
+      command += ` --speculative-disable-by-batch-size ${speculativeDisableByBatchSize}`;
+    }
+
+    if (specDecodingAcceptanceMethod !== 'rejection_sampler') {
+      command += ` --spec-decoding-acceptance-method ${specDecodingAcceptanceMethod}`;
+    }
+
+    if (typicalAcceptanceSamplerPosteriorThreshold !== '0.09') {
+      command += ` --typical-acceptance-sampler-posterior-threshold ${typicalAcceptanceSamplerPosteriorThreshold}`;
+    }
+
+    if (typicalAcceptanceSamplerPosteriorAlpha !== '0.3') {
+      command += ` --typical-acceptance-sampler-posterior-alpha ${typicalAcceptanceSamplerPosteriorAlpha}`;
+    }
+
+    if (disableLogprobsDuringSpecDecoding !== 'auto') {
+      command += ` --disable-logprobs-during-spec-decoding ${disableLogprobsDuringSpecDecoding}`;
     }
 
     return command;
@@ -1156,6 +1283,476 @@ function App() {
                     className="input-field"
                   />
                   <div className="field-hint">The name or path of the Qlora adapter to load.</div>
+                </div>
+
+                {/* Enable Prompt Adapter */}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setEnablePromptAdapter(!enablePromptAdapter)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Enable Prompt Adapter
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={enablePromptAdapter} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">Enable handling of prompt adapters.</div>
+                </div>
+
+                {/* Prompt Adapter Modules */}
+                <div className="input-group prompt-adapter-modules-group">
+                  <label>
+                    <i className="fa-solid fa-puzzle-piece"></i> Prompt Adapter Modules
+                  </label>
+                  <div className="field-hint mb-2">
+                    Add prompt adapter modules with their identifiers and paths. Each key is your
+                    desired prompt adapter name, and each value is the HuggingFace ID or local path.
+                  </div>
+
+                  {promptAdapters.map((adapter, index) => (
+                    <div className="prompt-adapter-module-row" key={index}>
+                      <div className="prompt-adapter-module-inputs">
+                        <div className="prompt-adapter-field-section">
+                          <input
+                            type="text"
+                            placeholder="Prompt adapter name"
+                            value={adapter.key}
+                            onChange={e => updatePromptAdapter(index, 'key', e.target.value)}
+                            className={`input-field prompt-adapter-key ${adapter.key.trim() ? 'is-valid' : ''}`}
+                          />
+                        </div>
+                        <div className="prompt-adapter-field-section">
+                          <input
+                            type="text"
+                            placeholder="Path or HF ID"
+                            value={adapter.value}
+                            onChange={e => updatePromptAdapter(index, 'value', e.target.value)}
+                            className={`input-field prompt-adapter-value ${adapter.value.trim() ? 'is-valid' : ''}`}
+                          />
+                          <button
+                            className="prompt-adapter-remove-btn"
+                            onClick={() => removePromptAdapter(index)}
+                            type="button"
+                            aria-label="Remove prompt adapter module"
+                          >
+                            <i className="fa-solid fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    className="prompt-adapter-add-btn"
+                    onClick={addPromptAdapter}
+                    type="button"
+                  >
+                    <i className="fa-solid fa-plus"></i> Add Prompt Adapter Module
+                  </button>
+
+                  {getPromptAdaptersString() && (
+                    <div className="prompt-adapter-preview">
+                      <div className="prompt-adapter-preview-title">Preview:</div>
+                      <code className="prompt-adapter-preview-code">
+                        --prompt-adapters {getPromptAdaptersString()}
+                      </code>
+                    </div>
+                  )}
+                </div>
+
+                {/* Max Prompt Adapters */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-cubes"></i> Max Prompt Adapters
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={maxPromptAdapters}
+                      onChange={e => setMaxPromptAdapters(e.target.value)}
+                      min="1"
+                      max="1024"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{maxPromptAdapters}</div>
+                  </div>
+                  <div className="field-hint">
+                    Maximum number of prompt adapters to use (default: 1).
+                  </div>
+                </div>
+
+                {/* Max Prompt Adapter Token */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-key"></i> Max Prompt Adapter Token
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={maxPromptAdapterToken}
+                      onChange={e => setMaxPromptAdapterToken(e.target.value)}
+                      min="0"
+                      max="2048"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{maxPromptAdapterToken}</div>
+                  </div>
+                  <div className="field-hint">
+                    Maximum token length for prompt adapters. 0 means unlimited (default: 0).
+                  </div>
+                </div>
+
+                {/* Scheduling Policy */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-cubes"></i> Scheduling Policy
+                  </label>
+                  <div className="select-container">
+                    <select
+                      value={schedulingPolicy}
+                      onChange={e => setSchedulingPolicy(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="fcfs">First Come First Serve</option>
+                      <option value="priority">Priority</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    The scheduling policy to use for the prompt adapters. Default is FCFS. If
+                    Priority is enabled, you can specify the priority of a request by adding a
+                    `priority` key to the request. 1 is the highest priority, and 0 means no
+                    priority.
+                  </div>
+                </div>
+
+                {/* Speculative Model */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-microchip"></i> Speculative Model
+                  </label>
+                  <input
+                    type="text"
+                    value={speculativeModel}
+                    onChange={e => setSpeculativeModel(e.target.value)}
+                    className="input-field"
+                  />
+                  <div className="field-hint">
+                    The model to use for speculative decoding. Can be an HF ID or a local path. To
+                    use an ngram model, put "[ngram]" in the name.
+                  </div>
+                </div>
+
+                {/* Speculative Model Quantization */}
+                <div className="input-group">
+                  <label htmlFor="speculativeModelQuantization">
+                    <i className="fa-solid fa-microchip"></i> Speculative Model Quantization
+                  </label>
+                  <div className="select-container">
+                    <select
+                      id="speculativeModelQuantization"
+                      value={speculativeModelQuantization}
+                      onChange={e => setSpeculativeModelQuantization(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      {quantizationOptions.map(option => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Quantization method to use for the speculative model. This can be different from
+                    the main model's quantization.
+                  </div>
+                </div>
+
+                {/* Number of Speculative Tokens */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-microchip"></i> Number of Speculative Tokens
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={numSpeculativeTokens}
+                      onChange={e => setNumSpeculativeTokens(e.target.value)}
+                      min="0"
+                      max="1024"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{numSpeculativeTokens}</div>
+                  </div>
+                  <div className="field-hint">
+                    The number of speculative tokens to use for the speculative model.
+                  </div>
+                </div>
+
+                {/* Speculative Disable MQA Scorer */}
+                <div className="input-group">
+                  <div
+                    className="toggle-field"
+                    onClick={() => setSpeculativeDisableMQAScorer(!speculativeDisableMQAScorer)}
+                  >
+                    <label className="toggle-label">
+                      <i className="fa-solid fa-microchip"></i> Speculative Disable MQA Scorer
+                    </label>
+                    <div className="toggle-switch">
+                      <input type="checkbox" checked={speculativeDisableMQAScorer} readOnly />
+                      <span className="toggle-slider"></span>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Disable the MQA scorer for speculative decoding and use batch expansion. The MQA
+                    scorer currently doesn't work with CUDA graphs so this is recommended.
+                  </div>
+                </div>
+
+                {/* Speculative Max Model Length */}
+                <div className="input-group">
+                  <div className="input-header">
+                    <label htmlFor="speculativeMaxModelLen">
+                      <i className="fa-solid fa-arrows-left-right"></i> Speculative Max Model Length
+                    </label>
+                    <div className="unlock-checkbox">
+                      <input
+                        type="checkbox"
+                        id="unlockSpeculativeMaxModelLen"
+                        checked={unlockSpeculativeMaxModelLen}
+                        onChange={e => setUnlockSpeculativeMaxModelLen(e.target.checked)}
+                      />
+                      <label htmlFor="unlockSpeculativeMaxModelLen" className="checkbox-label">
+                        Unlock
+                      </label>
+                    </div>
+                  </div>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="speculativeMaxModelLenSlider"
+                      min="256"
+                      max={unlockSpeculativeMaxModelLen ? '2097152' : '32768'}
+                      step={unlockSpeculativeMaxModelLen ? '4096' : '256'}
+                      value={speculativeMaxModelLen}
+                      onChange={e => setSpeculativeMaxModelLen(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{speculativeMaxModelLen}</div>
+                  </div>
+                  <div className="field-hint">
+                    Maximum sequence length of the speculative model. Defaults to provided model's
+                    max length.
+                    {unlockSpeculativeMaxModelLen && (
+                      <span className="warning-text"> Large values may increase memory usage.</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Speculative Prompt Lookup Min */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-search"></i> Speculative Prompt Lookup Min
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={speculativePromptLookupMin}
+                      onChange={e => setSpeculativePromptLookupMin(e.target.value)}
+                      min="0"
+                      max="2048"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{speculativePromptLookupMin}</div>
+                  </div>
+                  <div className="field-hint">
+                    Minimum size of window for ngram prompt lookup in speculative decoding. Only
+                    applicable to ngram speculative decoding.
+                  </div>
+                </div>
+
+                {/* Speculative Prompt Lookup Max */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-search"></i> Speculative Prompt Lookup Max
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={speculativePromptLookupMax}
+                      onChange={e => setSpeculativePromptLookupMax(e.target.value)}
+                      min="0"
+                      max="2048"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{speculativePromptLookupMax}</div>
+                  </div>
+                  <div className="field-hint">
+                    Maximum size of window for ngram prompt lookup in speculative decoding. Only
+                    applicable to ngram speculative decoding.
+                  </div>
+                </div>
+
+                {/* Speculative Draft Tensor Parallel Size */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-computer"></i> Speculative Draft Tensor Parallel Size
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={speculativeDraftTensorParallelSize}
+                      onChange={e => setSpeculativeDraftTensorParallelSize(e.target.value)}
+                      min="1"
+                      max="8"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{speculativeDraftTensorParallelSize}</div>
+                  </div>
+                  <div className="field-hint">
+                    Tensor parallel size for the speculative draft model. Default is 1.
+                  </div>
+                </div>
+
+                {/* Speculative Disable By Batch Size */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-ban"></i> Disable Speculation By Batch Size
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      value={speculativeDisableByBatchSize}
+                      onChange={e => setSpeculativeDisableByBatchSize(e.target.value)}
+                      min="0"
+                      max="256"
+                      step="1"
+                      className="slider"
+                    />
+                    <div className="slider-value">{speculativeDisableByBatchSize}</div>
+                  </div>
+                  <div className="field-hint">
+                    Speculative decoding is disabled for incoming requests if the number of enqueued
+                    requests is larger than this value. Default is 0 (disabled).
+                  </div>
+                </div>
+
+                {/* Speculative Decoding Acceptance Method */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-check-double"></i> Speculative Acceptance Method
+                  </label>
+                  <div className="select-container">
+                    <select
+                      value={specDecodingAcceptanceMethod}
+                      onChange={e => setSpecDecodingAcceptanceMethod(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="rejection_sampler">Rejection Sampler</option>
+                      <option value="typical_acceptance_sampler">Typical Acceptance Sampler</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    Acceptance method to use during draft token verification in speculative
+                    decoding. Two types of acceptance routines are supported: RejectionSampler which
+                    does not allow changing the acceptance rate of draft tokens, and
+                    TypicalAcceptanceSampler which is configurable, allowing for a higher acceptance
+                    rate at the cost of lower quality, and vice versa.
+                  </div>
+                </div>
+
+                {/* Typical Acceptance Sampler Posterior Threshold */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-sliders"></i> Typical Acceptance Posterior Threshold
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={typicalAcceptanceSamplerPosteriorThreshold}
+                      onChange={e => setTypicalAcceptanceSamplerPosteriorThreshold(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{typicalAcceptanceSamplerPosteriorThreshold}</div>
+                  </div>
+                  <div className="field-hint">
+                    Set the lower bound threshold for the posterior probability of a token to be
+                    accepted. This threshold is used by the TypicalAcceptanceSampler to make
+                    sampling decisions during speculative decoding. Default is 0.09.
+                  </div>
+                </div>
+
+                {/* Typical Acceptance Sampler Posterior Alpha */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-sliders"></i> Typical Acceptance Posterior Alpha
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={typicalAcceptanceSamplerPosteriorAlpha}
+                      onChange={e => setTypicalAcceptanceSamplerPosteriorAlpha(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{typicalAcceptanceSamplerPosteriorAlpha}</div>
+                  </div>
+                  <div className="field-hint">
+                    A scaling factor for the entropy-based threshold for token acceptance in the
+                    TypicalAcceptanceSampler. Typically defaults to square root of the posterior
+                    threshold, i.e. 0.3.
+                  </div>
+                </div>
+
+                {/* Disable Logprobs During Speculative Decoding */}
+                <div className="input-group">
+                  <label>
+                    <i className="fa-solid fa-calculator"></i> Disable Logprobs During Speculative
+                    Decoding
+                  </label>
+                  <div className="select-container">
+                    <select
+                      value={disableLogprobsDuringSpecDecoding}
+                      onChange={e => setDisableLogprobsDuringSpecDecoding(e.target.value)}
+                      className="select-dropdown fancy-select"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="True">True</option>
+                      <option value="False">False</option>
+                    </select>
+                    <div className="select-arrow">
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
+                  </div>
+                  <div className="field-hint">
+                    If enabled, token logprobs are not returned during speculative decoding. If not,
+                    logprobs are returned according to the settings in SamplingParams. If not
+                    specified, it defaults to True. Disabling log probabilities during speculative
+                    decoding reduces latency by skipping logprob calculation in proposal sampling,
+                    target sampling, and after accepted tokens are determined.
+                  </div>
                 </div>
 
                 {/* End */}

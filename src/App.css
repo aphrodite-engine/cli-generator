@@ -1034,8 +1034,9 @@ input:checked + .toggle-slider:before {
   margin-top: 8px;
 }
 
-/* LoRA Modules styling - updated */
-.lora-modules-group {
+/* LoRA Modules styling */
+.lora-modules-group,
+.prompt-adapter-modules-group {
   margin-top: 1.5rem;
 }
 
@@ -1043,12 +1044,14 @@ input:checked + .toggle-slider:before {
   margin-bottom: 1rem;
 }
 
-.lora-module-row {
+.lora-module-row,
+.prompt-adapter-module-row {
   margin-bottom: 0.75rem;
   animation: fadeIn 0.2s ease-in-out;
 }
 
-.lora-module-inputs {
+.lora-module-inputs,
+.prompt-adapter-module-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 25px;
@@ -1057,7 +1060,8 @@ input:checked + .toggle-slider:before {
   margin-bottom: 15px;
 }
 
-.lora-field-section {
+.lora-field-section,
+.prompt-adapter-field-section {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1068,13 +1072,10 @@ input:checked + .toggle-slider:before {
   position: relative;
 }
 
-/* Remove old field label styles since they're no longer used */
-.lora-field-label {
-  display: none;
-}
-
 .lora-key,
-.lora-value {
+.lora-value,
+.prompt-adapter-key,
+.prompt-adapter-value {
   width: 100%;
   border: none !important;
   background: transparent !important;
@@ -1083,31 +1084,28 @@ input:checked + .toggle-slider:before {
 }
 
 .lora-key:focus,
-.lora-value:focus {
+.lora-value:focus,
+.prompt-adapter-key:focus,
+.prompt-adapter-value:focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-.input-field.is-valid {
-  border-color: transparent !important;
-  background-color: transparent !important;
-  color: #2f855a;
-  font-weight: 500;
-}
-
-.lora-field-section .input-field.is-valid {
+.lora-field-section .input-field.is-valid,
+.prompt-adapter-field-section .input-field.is-valid {
   border-color: transparent !important;
   background-color: transparent !important;
   color: #2f855a;
 }
 
-.lora-field-section:has(.input-field.is-valid) {
+.lora-field-section:has(.input-field.is-valid),
+.prompt-adapter-field-section:has(.input-field.is-valid) {
   border-color: #48bb78;
   background-color: #f0fff4;
 }
 
-/* Position the X button in the corner of the path field */
-.lora-remove-btn {
+.lora-remove-btn,
+.prompt-adapter-remove-btn {
   position: absolute;
   top: -10px;
   right: -10px;
@@ -1128,27 +1126,21 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.lora-remove-btn:hover {
+.lora-remove-btn:hover,
+.prompt-adapter-remove-btn:hover {
   background-color: #fee2e2;
   color: #e53e3e;
   border-color: #fbd5d5;
   transform: scale(1.1);
 }
 
-.lora-remove-btn i {
+.lora-remove-btn i,
+.prompt-adapter-remove-btn i {
   font-size: 0.7rem;
 }
 
-/* Mobile layout */
-@media (max-width: 600px) {
-  .lora-module-inputs {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    gap: 15px;
-  }
-}
-
-.lora-add-btn {
+.lora-add-btn,
+.prompt-adapter-add-btn {
   background: linear-gradient(135deg, #8a2be2 0%, #a64dff 100%);
   color: white;
   border: none;
@@ -1165,23 +1157,20 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 2px 5px rgba(138, 43, 226, 0.2);
 }
 
-.lora-add-btn:hover {
+.lora-add-btn:hover,
+.prompt-adapter-add-btn:hover {
   background: linear-gradient(135deg, #7722cc 0%, #9839ff 100%);
   transform: translateY(-1px);
   box-shadow: 0 3px 7px rgba(138, 43, 226, 0.3);
 }
 
-.lora-add-btn i {
+.lora-add-btn i,
+.prompt-adapter-add-btn i {
   font-size: 0.8rem;
 }
 
-/* LoRA Modules validation and preview */
-.input-field.is-valid {
-  border-color: #48bb78;
-  background-color: #f0fff4;
-}
-
-.lora-preview {
+.lora-preview,
+.prompt-adapter-preview {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
   background-color: #f8fafc;
@@ -1191,7 +1180,8 @@ input:checked + .toggle-slider:before {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.lora-preview-title {
+.lora-preview-title,
+.prompt-adapter-preview-title {
   color: #8a2be2;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -1200,7 +1190,8 @@ input:checked + .toggle-slider:before {
   letter-spacing: 0.5px;
 }
 
-.lora-preview-code {
+.lora-preview-code,
+.prompt-adapter-preview-code {
   display: block;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   color: #4a2d8b;
@@ -1211,41 +1202,19 @@ input:checked + .toggle-slider:before {
   white-space: pre-wrap;
 }
 
-/* LoRA remove button hover state */
-.lora-remove-btn:hover {
-  background-color: #fee2e2;
-  color: #e53e3e;
-  border-color: #fbd5d5;
-}
-
-/* Add back delete button styling */
-.lora-remove-btn {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  border-radius: 50%;
-  background-color: #f8f9fa;
-  border: 1px solid #e2e8f0;
-  color: #718096;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
-  align-self: center;
-  margin-top: 22px; /* Align with input fields */
-}
-
-.lora-remove-btn:hover {
-  background-color: #fee2e2;
-  color: #e53e3e;
-  border-color: #fbd5d5;
-}
-
+/* Mobile layout for modules */
 @media (max-width: 600px) {
-  .lora-remove-btn {
-    margin-top: 0;
-    align-self: flex-end;
+  .lora-module-inputs,
+  .prompt-adapter-module-inputs {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 15px;
   }
+}
+
+/* Input field validation */
+.input-field.is-valid {
+  border-color: #48bb78;
+  background-color: #f0fff4;
+  color: #2f855a;
 }
