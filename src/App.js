@@ -16,6 +16,8 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [maxBatchSize, setMaxBatchSize] = useState('256');
 
   const commandSectionRef = useRef(null);
 
@@ -57,12 +59,7 @@ function App() {
     'ipex',
   ];
 
-  const kvCacheTypes = [
-    'auto',
-    'fp8',
-    'fp8_e5m2',
-    'fp8_e4m3'
-  ]
+  const kvCacheTypes = ['auto', 'fp8', 'fp8_e5m2', 'fp8_e4m3'];
 
   useEffect(() => {
     setAnimate(true);
@@ -151,6 +148,10 @@ function App() {
 
     if (kvCacheType !== 'auto') {
       command += ` --kv-cache-type ${kvCacheType}`;
+    }
+
+    if (maxBatchSize !== '256') {
+      command += ` --max-num-seqs ${maxBatchSize}`;
     }
 
     return command;
@@ -278,13 +279,19 @@ function App() {
                   max="100"
                   step="1"
                   value={Math.round(parseFloat(gpuMemoryUtilization) * 100)}
-                  onChange={e => setGpuMemoryUtilization((parseFloat(e.target.value) / 100).toFixed(2))}
+                  onChange={e =>
+                    setGpuMemoryUtilization((parseFloat(e.target.value) / 100).toFixed(2))
+                  }
                   className="slider"
                 />
-                <div className="slider-value">{Math.round(parseFloat(gpuMemoryUtilization) * 100)}%</div>
+                <div className="slider-value">
+                  {Math.round(parseFloat(gpuMemoryUtilization) * 100)}%
+                </div>
               </div>
               <div className="field-hint">
-                The percentage of total GPU memory to use for Aphrodite. Default is 90%. Note that Aphrodite Engine will reserve the specified amount of memory, and you will not be able to use it for other purposes.
+                The percentage of total GPU memory to use for Aphrodite. Default is 90%. Note that
+                Aphrodite Engine will reserve the specified amount of memory, and you will not be
+                able to use it for other purposes.
               </div>
             </div>
 
@@ -345,8 +352,8 @@ function App() {
                 </div>
               </div>
               <div className="field-hint">
-                Enables caching of previous prompt tokens for better performance with repeated queries. Off
-                by default.
+                Enables caching of previous prompt tokens for better performance with repeated
+                queries. Off by default.
               </div>
             </div>
 
@@ -365,8 +372,8 @@ function App() {
                 </div>
               </div>
               <div className="field-hint">
-                Enables chunked prefill for better memory usage with long sequences. Enabled by default for Max
-                Model Length above 16384.
+                Enables chunked prefill for better memory usage with long sequences. Enabled by
+                default for Max Model Length above 16384.
               </div>
             </div>
 
@@ -425,6 +432,63 @@ function App() {
                 The type of KV cache to use. Defaults to auto (no quantization).
               </div>
             </div>
+
+            {/* Advanced Options Toggle */}
+            <div className="input-group advanced-options-toggle">
+              <div
+                className="toggle-field"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <label className="toggle-label">
+                  <i className="fa-solid fa-gear"></i> Show Advanced Options
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={showAdvancedOptions} readOnly />
+                  <span className="toggle-slider"></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced Options Section */}
+            {showAdvancedOptions && (
+              <div className="advanced-options-section">
+                <div className="advanced-section-header">
+                  <h3 className="subsection-title">Advanced Options</h3>
+                  <div className="advanced-badge">
+                    <i className="fa-solid fa-code"></i> Advanced
+                  </div>
+                </div>
+                <p className="advanced-description">
+                  These options provide additional control for expert users. The defaults work well
+                  for most cases.
+                </p>
+
+                {/* Maximum Batch Size */}
+                <div className="input-group">
+                  <label htmlFor="maxBatchSize">
+                    <i className="fa-solid fa-layer-group"></i> Maximum Batch Size
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      id="maxBatchSizeSlider"
+                      min="1"
+                      max="1024"
+                      step="1"
+                      value={maxBatchSize}
+                      onChange={e => setMaxBatchSize(e.target.value)}
+                      className="slider"
+                    />
+                    <div className="slider-value">{maxBatchSize}</div>
+                  </div>
+                  <div className="field-hint">
+                    Maximum number of sequences to process in parallel. Default is 256. Higher
+                    values may use more GPU memory for CUDA graph captures, or cause OOMs when
+                    receiving a large number of requests.
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -889,3 +889,125 @@ input:checked + .toggle-slider:before {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Advanced Options Section */
+.advanced-options-toggle {
+  margin-top: 2rem;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 1.5rem;
+}
+
+/* Animation for Advanced Options section */
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 1000px;
+  }
+}
+
+.advanced-options-section {
+  margin-top: 1rem;
+  animation: fadeInSlideDown 0.3s ease-in-out;
+  background-color: rgba(138, 43, 226, 0.03);
+  border-radius: 8px;
+  padding: 1.5rem 2rem 1.5rem 1.5rem;
+  border: 1px solid rgba(138, 43, 226, 0.1);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.05);
+}
+
+.advanced-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.advanced-badge {
+  background: linear-gradient(135deg, #6b46c1, #8a2be2);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(106, 70, 193, 0.3);
+}
+
+.advanced-badge i {
+  margin-right: 4px;
+  font-size: 0.7rem;
+}
+
+.advanced-description {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  border-bottom: 1px dashed rgba(138, 43, 226, 0.1);
+  padding-bottom: 1rem;
+}
+
+/* Make the subsection title work well with the header */
+.subsection-title {
+  font-size: 1.1rem;
+  color: #6b46c1;
+  margin-bottom: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* Number input styling */
+.number-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: #8a2be2;
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+}
+
+/* Hide number input arrows in most browsers */
+.number-input::-webkit-outer-spin-button,
+.number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.number-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Add subtle highlight to the toggle when advanced options are shown */
+.advanced-options-toggle .toggle-field {
+  transition: all 0.3s ease;
+}
+
+.advanced-options-toggle input:checked + .toggle-slider {
+  background: linear-gradient(90deg, #6b46c1, #8a2be2);
+}
+
+/* Fix advanced options padding */
+.advanced-options-section .input-group {
+  padding-right: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
