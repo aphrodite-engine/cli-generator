@@ -13,3 +13,12 @@ npm start
 ```
 
 The application will open in your browser at `http://localhost:3000`.
+
+
+## Dev
+```sh
+npm run format
+npm run format:check
+npm run lint
+npm run lint:fix
+```
