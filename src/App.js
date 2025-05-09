@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
   const [modelId, setModelId] = useState('');
+  const [servedModelName, setServedModelName] = useState('');
   const [maxModelLen, setMaxModelLen] = useState('8192');
   const [unlockMaxLength, setUnlockMaxLength] = useState(false);
-  const [temperature, setTemperature] = useState('0.8');
-  const [seed, setSeed] = useState('42');
+  const [gpuMemoryUtilization, setGpuMemoryUtilization] = useState('0.9');
+  const [tensorParallelSize, setTensorParallelSize] = useState('1');
+  const [unlockTensorParallelSize, setUnlockTensorParallelSize] = useState(false);
   const [enablePrefixCaching, setEnablePrefixCaching] = useState(false);
+  const [enableChunkedPrefill, setEnableChunkedPrefill] = useState(false);
   const [quantization, setQuantization] = useState('None');
   const [copied, setCopied] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+
+  const commandSectionRef = useRef(null);
 
   // Quantization options, keep this in sync with
   // `aphrodite/quantization/__init__.py`
@@ -60,6 +66,35 @@ function App() {
     }
   }, [unlockMaxLength, maxModelLen]);
 
+  useEffect(() => {
+    if (!unlockTensorParallelSize && parseInt(tensorParallelSize) > 8) {
+      setTensorParallelSize('8');
+    }
+  }, [unlockTensorParallelSize, tensorParallelSize]);
+
+  // Handle scroll position to show/hide back to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollBtn(true);
+      } else {
+        setShowScrollBtn(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   const handleCopy = () => {
     const command = generateCommand();
     navigator.clipboard
@@ -78,20 +113,28 @@ function App() {
   const generateCommand = () => {
     let command = `aphrodite run ${modelId}`;
 
+    if (servedModelName !== '') {
+      command += ` --served-model-name ${servedModelName}`;
+    }
+
     if (maxModelLen !== '8192') {
       command += ` --max-model-len ${maxModelLen}`;
     }
 
-    if (temperature !== '0.8') {
-      command += ` --temperature ${temperature}`;
+    if (gpuMemoryUtilization !== '0.9') {
+      command += ` --gpu-memory-utilization ${gpuMemoryUtilization}`;
     }
 
-    if (seed !== '42') {
-      command += ` --seed ${seed}`;
+    if (tensorParallelSize !== '1') {
+      command += ` --tensor-parallel-size ${tensorParallelSize}`;
     }
 
     if (enablePrefixCaching) {
       command += ` --enable-prefix-caching`;
+    }
+
+    if (enableChunkedPrefill) {
+      command += ` --enable-chunked-prefill`;
     }
 
     if (quantization !== 'None') {
@@ -119,6 +162,24 @@ function App() {
           easily
         </p>
 
+        {/* Command Display Section - Moved to the top */}
+        <div className="command-section" ref={commandSectionRef}>
+          <h2 className="section-title">Generated Command</h2>
+          <div className="command-display sticky-command">
+            <div className="command-label">Command:</div>
+            <code>{generateCommand()}</code>
+          </div>
+          <button
+            className={`copy-button ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+            disabled={!modelId.trim()}
+          >
+            <i className={copied ? 'fa-solid fa-check' : 'fa-regular fa-clipboard'}></i>
+            {copied ? 'Copied!' : 'Copy to Clipboard'}
+          </button>
+        </div>
+
+        {/* Form Fields Section */}
         <div className="generator-section">
           <div className="form-area">
             <h2 className="section-title">Configure Your Command</h2>
@@ -135,6 +196,22 @@ function App() {
                 onChange={e => setModelId(e.target.value)}
                 placeholder="Enter model ID (e.g. openai-community/gpt2)"
               />
+            </div>
+
+            {/* Served Model Name field */}
+            <div className="input-group">
+              <label htmlFor="servedModelName">
+                <i className="fa-solid fa-server"></i> Model Name on the API (Optional)
+              </label>
+              <input
+                type="text"
+                id="servedModelName"
+                value={servedModelName}
+                onChange={e => setServedModelName(e.target.value)}
+              />
+              <div className="field-hint">
+                The name of the model on the API. Default is the model ID.
+              </div>
             </div>
 
             {/* Max Model Length field */}
@@ -176,49 +253,68 @@ function App() {
               </div>
             </div>
 
-            {/* Temperature field */}
+            {/* GPU Memory Utilization */}
             <div className="input-group">
-              <label htmlFor="temperature">
-                <i className="fa-solid fa-temperature-half"></i> Temperature
+              <label htmlFor="gpuMemoryUtilization">
+                <i className="fa-solid fa-memory"></i> GPU Memory Utilization
               </label>
               <div className="slider-container">
                 <input
                   type="range"
-                  id="temperatureSlider"
+                  id="gpuMemoryUtilizationSlider"
                   min="0"
-                  max="2"
-                  step="0.1"
-                  value={temperature}
-                  onChange={e => setTemperature(e.target.value)}
+                  max="1"
+                  step="0.01"
+                  value={gpuMemoryUtilization}
+                  onChange={e => setGpuMemoryUtilization(e.target.value)}
                   className="slider"
                 />
-                <div className="slider-value">{temperature}</div>
+                <div className="slider-value">{gpuMemoryUtilization}</div>
               </div>
               <div className="field-hint">
-                Controls randomness in text generation. Default is 0.8.
+                The Percentage of total GPU memory to use for Aphrodite. Default is 90%.
               </div>
             </div>
 
-            {/* Seed field */}
+            {/* Tensor Parallel Size */}
             <div className="input-group">
-              <label htmlFor="seed">
-                <i className="fa-solid fa-dice"></i> Seed
-              </label>
+              <div className="input-header">
+                <label htmlFor="tensorParallelSize">
+                  <i className="fa-solid fa-computer"></i> Tensor Parallel Size
+                </label>
+                <div className="unlock-checkbox">
+                  <input
+                    type="checkbox"
+                    id="unlockTensorParallelSize"
+                    checked={unlockTensorParallelSize}
+                    onChange={e => setUnlockTensorParallelSize(e.target.checked)}
+                  />
+                  <label htmlFor="unlockTensorParallelSize" className="checkbox-label">
+                    Unlock
+                  </label>
+                </div>
+              </div>
               <div className="slider-container">
                 <input
                   type="range"
-                  id="seedSlider"
-                  min="0"
-                  max="1000"
+                  id="tensorParallelSizeSlider"
+                  min="1"
+                  max={unlockTensorParallelSize ? '256' : '8'}
                   step="1"
-                  value={seed}
-                  onChange={e => setSeed(e.target.value)}
+                  value={tensorParallelSize}
+                  onChange={e => setTensorParallelSize(e.target.value)}
                   className="slider"
                 />
-                <div className="slider-value">{seed}</div>
+                <div className="slider-value">{tensorParallelSize}</div>
               </div>
               <div className="field-hint">
-                Random seed for reproducible generation. Default is 42.
+                The number of GPUs to use for parallel inference. Default is 1.
+                {unlockTensorParallelSize && (
+                  <span className="warning-text">
+                    If you're doing multi-node inference, please see the{' '}
+                    <a href="https://aphrodite.pygmalion.chat/usage/distributed/">here</a>.
+                  </span>
+                )}
               </div>
             </div>
 
@@ -270,23 +366,26 @@ function App() {
                 by default.
               </div>
             </div>
-          </div>
 
-          <div className="result-area">
-            <h2 className="section-title">Generated Command</h2>
-            <div className="command-display">
-              <div className="command-label">Command:</div>
-              <code>{generateCommand()}</code>
+            {/* Enable Chunked Prefill */}
+            <div className="input-group">
+              <div
+                className="toggle-field"
+                onClick={() => setEnableChunkedPrefill(!enableChunkedPrefill)}
+              >
+                <label className="toggle-label">
+                  <i className="fa-solid fa-database"></i> Enable Chunked Prefill
+                </label>
+                <div className="toggle-switch">
+                  <input type="checkbox" checked={enableChunkedPrefill} readOnly />
+                  <span className="toggle-slider"></span>
+                </div>
+              </div>
+              <div className="field-hint">
+                Enables chunked prefill for better performance with long sequences. Enabled for Max
+                Model Length above 16384.
+              </div>
             </div>
-
-            <button
-              className={`copy-button ${copied ? 'copied' : ''}`}
-              onClick={handleCopy}
-              disabled={!modelId.trim()}
-            >
-              <i className={copied ? 'fa-solid fa-check' : 'fa-regular fa-clipboard'}></i>
-              {copied ? 'Copied!' : 'Copy to Clipboard'}
-            </button>
           </div>
         </div>
       </main>
@@ -296,6 +395,13 @@ function App() {
           <p>Use this command in your terminal to run the Aphrodite Engine with your model</p>
         </div>
       </footer>
+
+      {/* Back to top button */}
+      {showScrollBtn && (
+        <button className="scroll-to-top-btn" onClick={scrollToTop}>
+          <i className="fa-solid fa-arrow-up"></i>
+        </button>
+      )}
     </div>
   );
 }

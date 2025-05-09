@@ -7,6 +7,7 @@
   color: #2d3748;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* Animations */
@@ -63,6 +64,9 @@
   margin: 0 auto;
   padding: 2.5rem 2rem;
   opacity: 0;
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .page-title {
@@ -85,6 +89,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
   margin-bottom: 3rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (max-width: 900px) {
@@ -98,6 +104,7 @@
   animation: slideUp 0.6s ease forwards;
   animation-delay: 0.3s;
   opacity: 0;
+  width: 100%;
 }
 
 .result-area {
@@ -110,6 +117,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .section-title {
@@ -133,6 +142,9 @@
 .input-group {
   margin-bottom: 1.8rem;
   text-align: left;
+  width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .field-hint {
@@ -140,6 +152,9 @@
   font-size: 0.85rem;
   color: #718096;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 label {
@@ -148,6 +163,9 @@ label {
   font-weight: 600;
   color: #4a5568;
   font-size: 0.95rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 label i {
@@ -177,6 +195,7 @@ input:focus {
   align-items: center;
   gap: 15px;
   margin-top: 8px;
+  width: 100%;
 }
 
 .slider {
@@ -251,6 +270,7 @@ input:focus {
   font-size: 0.9rem;
 }
 
+/* Command display improvements */
 .command-display {
   background-color: #f8fafc;
   border-radius: 8px;
@@ -264,6 +284,34 @@ input:focus {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.command-section {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: #4a2d8b;
+  font-size: 1.1rem;
+  font-weight: 500;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Ensure sticky command always fits */
+.sticky-command {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .command-label {
@@ -273,13 +321,8 @@ input:focus {
   font-weight: 600;
   margin-bottom: 0.5rem;
   letter-spacing: 0.5px;
-}
-
-code {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  color: #4a2d8b;
-  font-size: 1.1rem;
-  font-weight: 500;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .copy-button {
@@ -369,8 +412,7 @@ code {
   }
 
   .page-content {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding: 2rem 1.5rem;
   }
 
   .page-title {
@@ -408,6 +450,24 @@ code {
   .toggle-switch {
     align-self: flex-start;
     margin-top: 5px;
+  }
+
+  .command-display {
+    padding: 0.8rem;
+  }
+
+  .command-display code {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .toggle-field {
+    flex-wrap: wrap;
+  }
+
+  .input-group {
+    box-sizing: border-box;
   }
 }
 
@@ -449,13 +509,15 @@ code {
   font-weight: 500;
 }
 
-/* Toggle switch for boolean fields */
+/* Toggle field styling */
 .toggle-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
   cursor: pointer;
+  width: 100%;
+  overflow: visible;
 }
 
 .toggle-label {
@@ -714,4 +776,103 @@ input:checked + .toggle-slider:before {
 
 .fancy-select:focus {
   animation: pulse-glow 2s infinite;
+}
+
+/* Scroll to top button */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #8a2be2;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.scroll-to-top-btn:hover {
+  background-color: #7722cc;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.scroll-to-top-btn:active {
+  transform: translateY(-1px);
+}
+
+.scroll-to-top-btn i {
+  font-size: 1.2rem;
+}
+
+/* Remove the problematic single-column class */
+.single-column {
+  display: block;
+  width: 100%;
+}
+
+/* Specific fixes for very small screens */
+@media (max-width: 480px) {
+  /* Small screen override for toggle field */
+  .toggle-field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toggle-switch {
+    margin-top: 8px;
+    align-self: flex-start;
+  }
+
+  /* Command display improvements */
+  .command-display {
+    padding: 1rem;
+  }
+
+  code {
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .page-content {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Fix for mobile display */
+@media (max-width: 400px) {
+  .toggle-field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toggle-switch {
+    margin-top: 8px;
+  }
+
+  .toggle-label {
+    max-width: 100%;
+  }
+
+  .input-group {
+    padding-right: 10px;
+  }
+}
+
+/* Command display text wrapping */
+.command-display code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
